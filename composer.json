@@ -35,7 +35,7 @@
     },
     "laravel": {
       "providers": [
-        "esportspools\\SphinxSerach\\SphinxSearchServiceProvider"
+        "esportspools\\SphinxSearch\\SphinxSearchServiceProvider"
       ]
     }
   }
