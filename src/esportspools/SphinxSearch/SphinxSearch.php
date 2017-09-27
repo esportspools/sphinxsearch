@@ -1,6 +1,8 @@
 <?php 
 namespace esportspools\SphinxSearch;
 
+use Sphinx\SphinxClient;
+
 class SphinxSearch
 {
     protected $_connection;
@@ -18,12 +20,12 @@ class SphinxSearch
         $port    = \Config::get('sphinxsearch.port');
         $timeout = \Config::get('sphinxsearch.timeout');
         
-        $this->_connection = new \Sphinx\SphinxClient();
+        $this->_connection = new SphinxClient();
         
         $this->_connection->setServer($host, $port);
         $this->_connection->setConnectTimeout($timeout);
-        $this->_connection->setMatchMode(\Sphinx\SphinxClient::SPH_MATCH_ANY);
-        $this->_connection->setSortMode(\Sphinx\SphinxClient::SPH_SORT_RELEVANCE);
+        $this->_connection->setMatchMode(SphinxClient::SPH_MATCH_ANY);
+        $this->_connection->setSortMode(SphinxClient::SPH_SORT_RELEVANCE);
         
         if (extension_loaded('mysqli') && \Config::get('sphinxsearch.mysql_server')) 
         {
@@ -46,7 +48,7 @@ class SphinxSearch
      * @param array $extra, in this format: array('option_name' => option_value, 'limit' => 100, ...)
      * @return array
      */
-    public function getSnippetsQL($docs, $index_name, $query, $extra = [])
+    public function getSnippetsQL($docs, $index_name, $query, $extra = []): array
     {
         if (is_array($docs) === FALSE)
         {
@@ -75,7 +77,7 @@ class SphinxSearch
             }
         }
 
-        $query  = "CALL SNIPPETS((".implode(',',$docs)."),'".$index_name."','".mysqli_real_escape_string($this->_raw_mysql_connection, $query)."' ".$extra_ql.")";
+        $query  = 'CALL SNIPPETS((' . implode(',', $docs) . "),'" . $index_name . "','" . mysqli_real_escape_string($this->_raw_mysql_connection, $query) . "' " . $extra_ql . ')';
         $result = mysqli_query($this->_raw_mysql_connection, $query);
         $reply  = array();
         
@@ -255,8 +257,8 @@ class SphinxSearch
                 // Get results' id's and query the database.
                 $matchids   = array_keys($result['matches']);
                 $idString   = implode(',', $matchids);
-                $config     = isset($this->_config['mapping']) ? $this->_config['mapping'] : $this->_config[$this->_index_name];
-                $primaryKey = isset($config['primaryKey']) ? $config['primaryKey'] : 'id';
+                $config     = $this->_config['mapping'] ?? $this->_config[$this->_index_name];
+                $primaryKey = $config['primaryKey'] ?? 'id';
                 
                 if ($config) 
                 {
@@ -264,11 +266,13 @@ class SphinxSearch
                     {
                         if ($this->_eager_loads) 
                         {
-                            $result = call_user_func_array($config['modelname'] . "::whereIn", array($config['column'], $matchids))->orderByRaw(\DB::raw("FIELD($primaryKey, $idString)"))->with($this->_eager_loads)->get();
+                            $result = call_user_func($config['modelname'] . "::whereIn", $config['column'], $matchids)
+                                ->orderByRaw(\DB::raw("FIELD($primaryKey, $idString)"))->with($this->_eager_loads)->get();
                         } 
                         else 
                         {
-                            $result = call_user_func_array($config['modelname'] . "::whereIn", array($config['column'], $matchids))->orderByRaw(\DB::raw("FIELD($primaryKey, $idString)"))->get();
+                            $result = call_user_func($config['modelname'] . "::whereIn", $config['column'], $matchids)
+                                ->orderByRaw(\DB::raw("FIELD($primaryKey, $idString)"))->get();
                         }
                     } 
                     else 
@@ -346,7 +350,7 @@ class SphinxSearch
     }
 
     
-    public function getErrorMessage()
+    public function getErrorMessage(): string
     {
         return $this->_connection->getLastError();
     }
@@ -369,7 +373,7 @@ class SphinxSearch
     }
 
     
-    public function escapeStringQL($string)
+    public function escapeStringQL($string): string
     {
         return $this->_connection->escapeString($string);
     }
