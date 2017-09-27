@@ -23,7 +23,7 @@ Run in your console `composer update` command to pull down the latest version of
 Or just run this in console:
 
 ```php
-composer require snesportspoolsrl/sphinxsearch:dev-master
+composer require esportspools/sphinxsearch:dev-master
 ```
 
 
