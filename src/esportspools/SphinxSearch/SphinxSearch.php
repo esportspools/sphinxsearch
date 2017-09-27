@@ -1,5 +1,5 @@
 <?php 
-namespace sngrl\SphinxSearch;
+namespace esportspools\SphinxSearch;
 
 class SphinxSearch
 {
